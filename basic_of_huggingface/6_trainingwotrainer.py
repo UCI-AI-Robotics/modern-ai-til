@@ -73,22 +73,6 @@ train_dataloader = make_dataloader(train_dataset, batch_size=8, shuffle=True)
 valid_dataloader = make_dataloader(valid_dataset, batch_size=8, shuffle=False)
 test_dataloader = make_dataloader(test_dataset, batch_size=8, shuffle=False)
 
-# def train_epoch(model, data_loader, optimizer):
-#     model.train()
-#     total_loss = 0
-#     for batch in tqdm(data_loader):
-#         optimizer.zero_grad()
-#         input_ids = batch['input_ids'].to(device) # 모델에 입력할 토큰 아이디
-#         attention_mask = batch['attention_mask'].to(device) # 모델에 입력할 어텐션 마스크
-#         labels = batch['labels'].to(device) # 모델에 입력할 레이블
-#         outputs = model(input_ids, attention_mask=attention_mask, labels=labels) # 모델 계산
-#         loss = outputs.loss # 손실
-#         loss.backward() # 역전파
-#         optimizer.step() # 모델 업데이트
-#         total_loss += loss.item()
-#     avg_loss = total_loss / len(data_loader)
-#     return avg_loss
-
 # define train helper function
 def train_epoch(model, data_loader, optimizer):
     # model > train mode
@@ -119,8 +103,49 @@ def train_epoch(model, data_loader, optimizer):
     avg_loss = total_loss / len(data_loader)
     return avg_loss
 
+# define evaluation func
+def evaluate(model, data_loader):
+    # model > eval mode
+    model.eval()
+    # define loss/prediction/ground_truth vars
+    total_loss = 0
+    predictions, gt_labels = [], []
+    # for-loop with no grad
+    with torch.no_grad():
+        for batch in tqdm(data_loader):
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            # get model output
+            output = model(input_ids, attention_mask=attention_mask, labels=labels) # 모델 계산
+            # get loss and prediction
+            logits, loss = output.logits, output.loss
+            total_loss += loss.item()
+            preds = torch.argmax(logits, dim=-1)
+            # prediction / gt_labels for accuracy comparison
+            predictions.extend(preds.cpu().numpy())
+            gt_labels.extend(labels.cpu().numpy())
+
+    # get avg_loss 
+    avg_loss = total_loss / len(data_loader)
+    # get accuracy
+    accuracy = np.mean(np.array(predictions) == np.array(gt_labels))
+    return avg_loss, accuracy
+
+num_epochs = 1
 learning_rate = 5e-5
 optimizer = AdamW(model.parameters(), lr=learning_rate)
 
+# Training Loop
+for epoch in range(num_epochs):
+    print(f"Epoch {epoch+1}/{num_epochs}")
+    train_loss = train_epoch(model, train_dataloader, optimizer)
+    print(f"Training loss: {train_loss}")
+    valid_loss, valid_accuracy = evaluate(model, valid_dataloader)
+    print(f"Validation loss: {valid_loss}")
+    print(f"Validation accuracy: {valid_accuracy}")
 
-train_loss = train_epoch(model, train_dataloader, optimizer)
+# Final test accuracy
+_, test_accuracy = evaluate(model, test_dataloader)
+print(f"Test accuracy: {test_accuracy}")
+# Test accuracy: 0.808
