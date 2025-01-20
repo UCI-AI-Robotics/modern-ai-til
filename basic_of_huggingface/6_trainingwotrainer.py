@@ -73,6 +73,54 @@ train_dataloader = make_dataloader(train_dataset, batch_size=8, shuffle=True)
 valid_dataloader = make_dataloader(valid_dataset, batch_size=8, shuffle=False)
 test_dataloader = make_dataloader(test_dataset, batch_size=8, shuffle=False)
 
+# def train_epoch(model, data_loader, optimizer):
+#     model.train()
+#     total_loss = 0
+#     for batch in tqdm(data_loader):
+#         optimizer.zero_grad()
+#         input_ids = batch['input_ids'].to(device) # 모델에 입력할 토큰 아이디
+#         attention_mask = batch['attention_mask'].to(device) # 모델에 입력할 어텐션 마스크
+#         labels = batch['labels'].to(device) # 모델에 입력할 레이블
+#         outputs = model(input_ids, attention_mask=attention_mask, labels=labels) # 모델 계산
+#         loss = outputs.loss # 손실
+#         loss.backward() # 역전파
+#         optimizer.step() # 모델 업데이트
+#         total_loss += loss.item()
+#     avg_loss = total_loss / len(data_loader)
+#     return avg_loss
+
 # define train helper function
 def train_epoch(model, data_loader, optimizer):
-    
+    # model > train mode
+    model.train()
+    # define loss metric var
+    total_loss = 0
+    # for-loop with tqdm
+    for batch in tqdm(data_loader):
+        # optimizer zero grad
+        optimizer.zero_grad()
+        # prepare model inputs - input_ids/attention_mask/labels
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        labels = batch['labels'].to(device)
+
+        # get model output
+        output = model(input_ids, attention_mask=attention_mask, labels=labels) # 모델 계산
+
+        # get loss and run back propagation - loss/backward/step
+        loss = output.loss
+        loss.backward()
+        optimizer.step()
+
+        # get loss sum 
+        total_loss += loss.item()
+
+    # get avg loss
+    avg_loss = total_loss / len(data_loader)
+    return avg_loss
+
+learning_rate = 5e-5
+optimizer = AdamW(model.parameters(), lr=learning_rate)
+
+
+train_loss = train_epoch(model, train_dataloader, optimizer)
