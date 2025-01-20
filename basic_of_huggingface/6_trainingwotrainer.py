@@ -41,9 +41,13 @@ from transformers import (
     AutoTokenizer
 )
 
+# select computing device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def tokenize_helper(ex):
     return tokenizer(ex['title'], padding='max_length',truncation=True)
 
+# Load model and tokenizer
 model_id = "klue/roberta-base"
 model = AutoModelForSequenceClassification.from_pretrained(
     model_id,
@@ -51,35 +55,24 @@ model = AutoModelForSequenceClassification.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-train_dataset = train_dataset.map(tokenize_helper, batched=True)
-valid_dataset = valid_dataset.map(tokenize_helper, batched=True)
-test_dataset = test_dataset.map(tokenize_helper, batched=True)
+# convey model to device
+model.to(device)
 
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=1,
-    per_device_train_batch_size=4,
-    per_device_eval_batch_size=4,
-    evaluation_strategy="epoch",
-    learning_rate=5e-5,
-    push_to_hub=False
-)
+from tqdm.auto import tqdm
+from torch.utils.data import DataLoader
+from transformers import AdamW
 
-def compute_metrics(eval_pred):
-    logits, labels = eval_pred
-    predictions = np.argmax(logits, axis=-1)
-    return {"accuracy": (predictions == labels).mean()}
+# Create dataset loader wtih DataLoader from torch
+def make_dataloader(dataset, batch_size, shuffle=True):
+    dataset = dataset.map(tokenize_helper, batched=True).with_format("torch")
+    dataset = dataset.rename_column("label", "labels") # column rename
+    dataset = dataset.remove_columns(column_names=['title']) # remove useless cols
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_dataset,
-    eval_dataset=valid_dataset,
-    tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
-)
+train_dataloader = make_dataloader(train_dataset, batch_size=8, shuffle=True)
+valid_dataloader = make_dataloader(valid_dataset, batch_size=8, shuffle=False)
+test_dataloader = make_dataloader(test_dataset, batch_size=8, shuffle=False)
 
-trainer.train()
-
-performance = trainer.evaluate(test_dataset) # 정확도 0.84
-print(f"Final Performance: {performance}")
+# define train helper function
+def train_epoch(model, data_loader, optimizer):
+    

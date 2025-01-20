@@ -16,7 +16,7 @@ def make_str_label(batch):
     return batch
 
 klue_ynat_train = klue_ynat_train.map(make_str_label, batched=True, batch_size=1000)
-print(f"klue_ynat_train[0]: {klue_ynat_train[0]}")
+print(f"[Dataset Sample] klue_ynat_train[0]: {klue_ynat_train[0]}")
 
 # split datasets into train/test/validate
 train_dataset = klue_ynat_train.train_test_split(
@@ -40,9 +40,11 @@ from transformers import (
     AutoTokenizer
 )
 
+# tokenizing helper - tokenizing to 'title' column
 def tokenize_helper(ex):
     return tokenizer(ex['title'], padding='max_length',truncation=True)
 
+# Load model and tokenizer
 model_id = "klue/roberta-base"
 model = AutoModelForSequenceClassification.from_pretrained(
     model_id,
@@ -50,25 +52,31 @@ model = AutoModelForSequenceClassification.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
+# prepare dataset
 train_dataset = train_dataset.map(tokenize_helper, batched=True)
 valid_dataset = valid_dataset.map(tokenize_helper, batched=True)
 test_dataset = test_dataset.map(tokenize_helper, batched=True)
 
+# define Arguments for Trainer
 training_args = TrainingArguments(
     output_dir="./results",
-    num_train_epochs=1,
-    per_device_train_batch_size=4,
-    per_device_eval_batch_size=4,
+    num_train_epochs=2,
+    # per_device_train_batch_size=4, # For RTX3070
+    # per_device_eval_batch_size=4,  # For RTX3070
+    per_device_train_batch_size=8, # For RTX4090
+    per_device_eval_batch_size=8,  # For RTX4090
     evaluation_strategy="epoch",
     learning_rate=5e-5,
     push_to_hub=False
 )
 
+# Compute performance - right value percentage
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
     return {"accuracy": (predictions == labels).mean()}
 
+# Define Trainer with TrainingArguments
 trainer = Trainer(
     model=model,
     args=training_args,
@@ -78,7 +86,17 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
 )
 
+# train model
 trainer.train()
 
-performance = trainer.evaluate(test_dataset) # 정확도 0.84
+# evaluate model
+performance = trainer.evaluate(test_dataset)
 print(f"Final Performance: {performance}")
+# Final Performance: {
+#     'eval_loss': 0.647104799747467, 
+#     'eval_accuracy': 0.843, 
+#     'eval_runtime': 4.197, 
+#     'eval_samples_per_second': 238.266, 
+#     'eval_steps_per_second': 59.567, 
+#     'epoch': 1.0
+# }
