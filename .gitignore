@@ -1,5 +1,6 @@
 basic_of_huggingface/results/*
 
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -171,3 +172,4 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+basic_of_huggingface/hg_token.py
