@@ -59,7 +59,7 @@ test_dataset = test_dataset.map(tokenize_helper, batched=True)
 
 # define Arguments for Trainer
 training_args = TrainingArguments(
-    output_dir="./results",
+    output_dir="./results_w_trainer",
     num_train_epochs=2,
     # per_device_train_batch_size=4, # For RTX3070
     # per_device_eval_batch_size=4,  # For RTX3070
@@ -100,3 +100,18 @@ print(f"Final Performance: {performance}")
 #     'eval_steps_per_second': 59.567, 
 #     'epoch': 1.0
 # }
+
+# Specify customized model configs
+id2label = {i: label for i, label in enumerate(train_dataset.features['label'].names)}
+label2id = {label: i for i, label in id2label.items()}
+model.config.id2label = id2label
+model.config.label2id = label2id
+
+# Push trained model onto HG hub 
+from huggingface_hub import login
+from hg_token import HG_TOKEN
+
+login(token=HG_TOKEN)
+repo_id = "kimsooyoung/roberta-base-klue-ynat-classification-w-trainer"
+
+trainer.push_to_hub(repo_id) 

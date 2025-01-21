@@ -149,3 +149,19 @@ for epoch in range(num_epochs):
 _, test_accuracy = evaluate(model, test_dataloader)
 print(f"Test accuracy: {test_accuracy}")
 # Test accuracy: 0.808
+
+# Specify customized model configs
+id2label = {i: label for i, label in enumerate(train_dataset.features['label'].names)}
+label2id = {label: i for i, label in id2label.items()}
+model.config.id2label = id2label
+model.config.label2id = label2id
+
+# Push trained model onto HG hub 
+from huggingface_hub import login
+from hg_token import HG_TOKEN
+
+login(token=HG_TOKEN)
+repo_id = "kimsooyoung/roberta-base-klue-ynat-classification"
+
+model.push_to_hub(repo_id)
+tokenizer.push_to_hub(repo_id)
