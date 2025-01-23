@@ -56,14 +56,31 @@ def gpu_memory_experiment(
 cleanup()
 print_gpu_usage()
 
-# gpu_memory_experiment(
-#     batch_size=1,
-#     gradient_accumulation_steps=1,
-#     gradient_checkpointing=True,
-#     peft='lora'
-# )
-
 gpu_memory_experiment(
-    batch_size=1,
+    batch_size=4,
+    gradient_accumulation_steps=4,
+    # gradient_checkpointing=True,
     peft='qlora'
 )
+# batch_size: 4
+# trainable params: 1,572,864 || all params: 1,333,383,168 || trainable%: 0.11796039111242178
+# train_model Used GPU Memory : 1.3078560829162598
+# Optimizer Memory Usage: 0.012 GB
+# Gradient Memory Usage: 0.006 GB
+#  Used GPU Memory : 0.015870094299316406
+
+# gpu_memory_experiment(
+#     batch_size=16,
+#     peft='qlora'
+# )
+# batch_size: 16
+# trainable params: 1,572,864 || all params: 1,333,383,168 || trainable%: 0.11796039111242178
+# load_model_and_tokenizer Used GPU Memory : 1.1434111595153809
+# train_model Used GPU Memory : 1.6985268592834473
+# Optimizer Memory Usage: 0.012 GB
+# Gradient Memory Usage: 0.006 GB
+#  Used GPU Memory : 0.015870094299316406
+
+# => optimizer memory twice than normal LoRA
+# => model/tokenizer memory about half than normal LoRA
+# => total mem usage 4.3 => 1.7

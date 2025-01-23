@@ -60,3 +60,14 @@ gpu_memory_experiment(
     batch_size=4, 
     gradient_accumulation_steps=4
 )
+
+# batch_size: 4
+# load_model_and_tokenizer Used GPU Memory : 2.575439929962158
+# train_model Used GPU Memory : 10.468698024749756
+# Optimizer Memory Usage: 4.961 GB
+# Gradient Memory Usage: 2.481 GB
+#  Used GPU Memory : 0.015869140625
+
+# batch size 4 / gradient_accumulation_steps 4 has same meaning with 16 batch
+# model / gradient / optimizer usage would be same as pure 16 batch but total mem usage has decreased
+# Given that pure 16 batch required total 11.7GB gradient_accumulation has more memory efficiency

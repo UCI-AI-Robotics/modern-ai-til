@@ -2,7 +2,6 @@
 # Four most types of memory exists 
 # Model/Gradient/Optimizer
 
-# TODO: 1 torch.optim.AdamW
 # TODO: 2 run code and check actual outputs
 
 import gc
@@ -14,7 +13,6 @@ from torch.utils.data import DataLoader
 from transformers import (
     AutoModelForCausalLM, 
     AutoTokenizer, 
-    AdamW,
     BitsAndBytesConfig
 )
 from peft import (
@@ -24,12 +22,12 @@ from peft import (
 )
 
 # print gpu usage utilizing torch's API
-def print_gpu_usage():
+def print_gpu_usage(func_name=""):
     # if device is GPU
     if torch.cuda.is_available():
         # get allocated memory and print result
         used_memory = torch.cuda.memory_allocated() / 1024**3
-        print(f"Used GPU Memory: {used_memory}")
+        print(f"{func_name} Used GPU Memory : {used_memory}")
     else:
         print("Current device is CPU")
 
@@ -89,7 +87,7 @@ def load_model_and_tokenizer(model_id, peft=None):
         model.print_trainable_parameters()
 
     # print gpu usage with helper func
-    print_gpu_usage()
+    print_gpu_usage("load_model_and_tokenizer")
 
     # return model & tokenizer
     return model, tokenizer
@@ -130,7 +128,7 @@ def train_model(model, dataset, training_args):
         dataset, 
         batch_size=training_args.per_device_train_batch_size
     )
-    optimizer = AdamW(model.parameters())
+    optimizer = torch.optim.AdamW(model.parameters())
     model.train()
 
     # first time printing toggle
@@ -152,7 +150,7 @@ def train_model(model, dataset, training_args):
             gradients_memory = estimate_memory_of_gradients(model)
             optimizer_memory = estimate_memory_of_optimizer(optimizer)
             if not gpu_utilization_printed:
-                print_gpu_usage()
+                print_gpu_usage("train_model")
                 gpu_utilization_printed = True
             optimizer.zero_grad()
 
@@ -175,7 +173,7 @@ if __name__ == "__main__":
     learning_rate = 5e-5
     model_id = "EleutherAI/polyglot-ko-1.3b"
     model, tokenizer = load_model_and_tokenizer(model_id) # GPU 메모리 사용량: 2.599 GB
-    optimizer = AdamW(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     estimate_memory_of_gradients(model)
     estimate_memory_of_optimizer(optimizer)

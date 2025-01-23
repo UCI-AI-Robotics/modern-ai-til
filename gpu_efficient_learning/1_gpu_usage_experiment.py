@@ -59,3 +59,27 @@ print_gpu_usage()
 for batch_size in [4, 8, 16]:
     gpu_memory_experiment(batch_size)
     torch.cuda.empty_cache()
+
+# ######## Result ########
+### batch_size: 4
+# load_model_and_tokenizer Used GPU Memory : 2.575439929962158
+# train_model Used GPU Memory : 10.468698024749756
+# Optimizer Memory Usage: 4.961 GB
+# Gradient Memory Usage: 2.481 GB
+#  Used GPU Memory : 0.015869140625
+### batch_size: 8
+# load_model_and_tokenizer Used GPU Memory : 2.591309070587158
+# train_model Used GPU Memory : 10.901574611663818
+# Optimizer Memory Usage: 4.961 GB
+# Gradient Memory Usage: 2.481 GB
+#  Used GPU Memory : 0.015869140625
+### batch_size: 16
+# load_model_and_tokenizer Used GPU Memory : 2.591309070587158
+# train_model Used GPU Memory : 11.765862941741943
+# Optimizer Memory Usage: 4.961 GB
+# Gradient Memory Usage: 2.481 GB
+#  Used GPU Memory : 0.015869140625
+
+# => model / gradient / optimizer memory would be same 
+# => but total memory usage (which is train_model Used GPU Memory) increases
+# => this means feed forward calculation memory increasing
