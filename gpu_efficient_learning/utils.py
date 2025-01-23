@@ -1,6 +1,9 @@
 # Keep trach GPU memory usage 
 # Four most types of memory exists 
-# Model/Gradient/Optimizer/
+# Model/Gradient/Optimizer
+
+# TODO: 1 torch.optim.AdamW
+# TODO: 2 run code and check actual outputs
 
 import gc
 import torch
@@ -10,9 +13,14 @@ from datasets import Dataset
 from torch.utils.data import DataLoader
 from transformers import (
     AutoModelForCausalLM, 
-    TrainingArguments, 
     AutoTokenizer, 
     AdamW,
+    BitsAndBytesConfig
+)
+from peft import (
+    LoraConfig, 
+    get_peft_model,
+    prepare_model_for_kbit_training
 )
 
 # print gpu usage utilizing torch's API
@@ -39,10 +47,46 @@ def load_model_and_tokenizer(model_id, peft=None):
     # define tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-    # define model\
+    # define model
     model = None
     if peft is None:
         model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype="auto", device_map={"":0})
+    elif peft == "lora":
+        model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype="auto", device_map={"":0})
+        # configure LoRA Setup
+        lora_config = LoraConfig(
+            r=8, # rank r
+            lora_alpha=32, # weight factor alpha (alpha / r would be a real weight)
+            target_modules=["query_key_value"], # target layer name
+            lora_dropout=0.05, # dropout rate
+            bias="none", # ETC configs
+            task_type="CASUAL_LM",
+        )
+        # model wi LoRA 
+        model = get_peft_model(model, lora_config)
+        # print parameters
+        model.print_trainable_parameters()
+    elif peft == "qlora":
+        # Normal LoRA config
+        lora_config = LoraConfig(
+            r=8, lora_alpha=32, target_modules=["query_key_value"], 
+            lora_dropout=0.05, bias="none", task_type="CASUAL_LM",
+        )
+        # Quantization Configuration
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True, # 4 bit quantized loading 
+            bnb_4bit_quant_type="nf4", # 4 bit data type
+            bnb_4bit_use_double_quant=True, # whether to do second quantization
+            bnb_4bit_compute_dtype=torch.bfloat16 # type for computation
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id, quantization_config=bnb_config,
+            torch_dtype="auto", device_map={"":0}
+        )
+        model.gradient_checkpointing_enable()
+        model = prepare_model_for_kbit_training(model)
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
 
     # print gpu usage with helper func
     print_gpu_usage()
@@ -126,12 +170,15 @@ def make_dummy_dataset():
     dataset.set_format("pt")
     return dataset
 
-# learning_rate = 5e-5
-# model_id = "EleutherAI/polyglot-ko-1.3b"
-# model, tokenizer = load_model_and_tokenizer(model_id) # GPU 메모리 사용량: 2.599 GB
-# optimizer = AdamW(model.parameters(), lr=learning_rate)
+# Boilerplate to ensure proper script execution
+if __name__ == "__main__":
+    learning_rate = 5e-5
+    model_id = "EleutherAI/polyglot-ko-1.3b"
+    model, tokenizer = load_model_and_tokenizer(model_id) # GPU 메모리 사용량: 2.599 GB
+    optimizer = AdamW(model.parameters(), lr=learning_rate)
 
-# estimate_memory_of_gradients(model)
-# estimate_memory_of_optimizer(optimizer)
+    estimate_memory_of_gradients(model)
+    estimate_memory_of_optimizer(optimizer)
 
-# train_model()
+    train_model()
+
