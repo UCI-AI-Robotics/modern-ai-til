@@ -133,7 +133,7 @@ class TransformerEncoderLayer(nn.Module):
     def forward(self, x):
         # norm => attention => dropout => residual => ff
         normed_x = self.norm(x)
-        attened_x = normed_x + self.dropout(self.mh_attention(normed_x, normed_x, normed_x))
+        attened_x = normed_x + self.dropout(self.mh_attention(normed_x, normed_x, normed_x, is_casual=False))
         output  = self.ff_layer(attened_x)
         return output 
 
