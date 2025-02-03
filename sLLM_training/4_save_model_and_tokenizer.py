@@ -1,3 +1,5 @@
+# Save fine-tuned model and upload to Hugging Face Hub
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import LoraConfig, PeftModel
@@ -6,24 +8,24 @@ base_model = 'beomi/Yi-Ko-6B'
 finetuned_model = 'yi-ko-6b-text2sql'
 
 model_name = base_model
-device_map = {"": 0}
+device_map = {"": 0}  # Assign the model to GPU 0
 
-# LoRA와 기초 모델 파라미터 합치기
+# Merge LoRA and base model parameters
 base_model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    low_cpu_mem_usage=True,
-    return_dict=True,
-    torch_dtype=torch.float16,
-    device_map=device_map,
+    low_cpu_mem_usage=True,  # Optimize memory usage while loading the model
+    return_dict=True,  # Return output as a dictionary
+    torch_dtype=torch.float16,  # Use 16-bit floating point precision
+    device_map=device_map,  # Assign the model to the correct device
 )
 model = PeftModel.from_pretrained(base_model, finetuned_model)
-model = model.merge_and_unload()
+model = model.merge_and_unload()  # Merge LoRA parameters and unload unused weights
 
-# 토크나이저 설정
+# Set up the tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
+tokenizer.pad_token = tokenizer.eos_token  # Set padding token to the EOS token
+tokenizer.padding_side = "right"  # Set padding to the right side
 
-# 허깅페이스 허브에 모델 및 토크나이저 저장
+# Save the model and tokenizer to the Hugging Face Hub
 model.push_to_hub(finetuned_model, use_temp_dir=False)
 tokenizer.push_to_hub(finetuned_model, use_temp_dir=False)

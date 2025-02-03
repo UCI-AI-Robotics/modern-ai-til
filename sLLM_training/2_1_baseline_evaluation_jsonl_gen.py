@@ -1,28 +1,11 @@
-import torch
+# Create jsonl file for GPT-based evaluation 
+
 from datasets import load_dataset
-from transformers import (
-    pipeline, 
-    AutoTokenizer, 
-    AutoModelForCausalLM
-)
 from utils import (
     make_prompt,
+    make_inference_pipeline,
     make_requests_for_gpt_evaluation
 )
-
-# Inference pipeline with HG transformer modules
-def make_inference_pipeline(model_id):
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id, device_map="auto", 
-        # quantization options
-        load_in_4bit=True, 
-        bnb_4bit_compute_dtype=torch.float16
-    )
-    pipe = pipeline(
-        "text-generation", model=model, tokenizer=tokenizer
-    )
-    return pipe
 
 model_id = "beomi/Yi-Ko-6B"
 hf_pipe = make_inference_pipeline(model_id)

@@ -1,8 +1,9 @@
+# Checkout Answer accuracy
+
+import json
 from utils import (
-    make_prompt,
     change_jsonl_to_csv
 )
-import json
 
 eval_filepath = "text2sql_evaluation.jsonl"
 

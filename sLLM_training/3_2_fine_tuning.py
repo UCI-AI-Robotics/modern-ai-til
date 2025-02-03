@@ -1,15 +1,17 @@
+# Fine tuning with autotrain (https://huggingface.co/autotrain)
+
 import os
 
 base_model = "beomi/Yi-Ko-6B"
 finetuned_model = "yi-ko-6b-text2sql"
-data-path = "data/"
+data_path = "data/"
 
 command = f"""
 autotrain llm \
 --train \
 --model {base_model} \
 --project-name {finetuned_model} \
---data-path {data-path} \
+--data-path {data_path} \
 --text-column text \
 --lr 2e-4 \
 --batch-size 8 \
