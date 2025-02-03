@@ -92,6 +92,8 @@ def change_jsonl_to_csv(input_file, output_file, prompt_column="prompt", respons
     # Read the JSONL file and extract the prompts and responses
     with open(input_file, 'r') as json_file:
         for data in json_file:
+            # print(json.loads(data)[0]['messages'][0]['content'])
+            # print(json.loads(data)[1])
             prompts.append(json.loads(data)[0]['messages'][0]['content'])  # Extract prompt
             responses.append(json.loads(data)[1]['choices'][0]['message']['content'])  # Extract response
 

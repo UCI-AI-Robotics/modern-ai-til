@@ -46,4 +46,20 @@ result = hf_pipe(
 )
 print(f"Inference Result: {result}")
 
-# TODO: result here
+# Inference Result:
+# 'generated_text': "SELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n\
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players WHERE username LIKE '%admin%';\n\n
+### SQL 봇의 결과:\nSELECT COUNT(*) FROM players"}]
