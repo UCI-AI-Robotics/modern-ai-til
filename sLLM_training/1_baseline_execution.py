@@ -1,23 +1,4 @@
-import torch
-from transformers import (
-    pipeline, 
-    AutoTokenizer, 
-    AutoModelForCausalLM
-)
-
-# Inference pipeline with HG transformer modules
-def make_inference_pipeline(model_id):
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id, device_map="auto", 
-        # quantization options
-        load_in_4bit=True, 
-        bnb_4bit_compute_dtype=torch.float16
-    )
-    pipe = pipeline(
-        "text-generation", model=model, tokenizer=tokenizer
-    )
-    return pipe
+from utils import make_inference_pipeline
 
 model_id = "beomi/Yi-Ko-6B"
 hf_pipe = make_inference_pipeline(model_id)

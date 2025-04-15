@@ -1,7 +1,15 @@
+import os
 import json
+import torch
 import pandas as pd
 from pathlib import Path
-import os
+from transformers import (
+    pipeline, 
+    AutoTokenizer, 
+    AutoModelForCausalLM
+)
+
+# OpenAI Key with Paid One
 from constants import OPENAI_API_KEY
 
 # Set the OpenAI API key as an environment variable
@@ -101,3 +109,30 @@ def change_jsonl_to_csv(input_file, output_file, prompt_column="prompt", respons
     df = pd.DataFrame({prompt_column: prompts, response_column: responses})
     df.to_csv(output_file, index=False)
     return df
+
+# Inference pipeline with Hugging Face transformer modules
+def make_inference_pipeline(model_id):
+    """
+    Creates an inference pipeline using a Hugging Face transformer model.
+    
+    Parameters:
+    model_id (str): The model identifier from the Hugging Face model hub.
+    
+    Returns:
+    pipeline: A text-generation pipeline ready for inference.
+    """
+    # Load the tokenizer for the specified model
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    
+    # Load the model with quantization settings for efficiency
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id, 
+        device_map="auto",  # Automatically assign the model to the available device
+        load_in_4bit=True,  # Load the model in 4-bit precision for optimized inference
+        bnb_4bit_compute_dtype=torch.float16  # Use float16 for computation
+    )
+    
+    # Create a text generation pipeline using the model and tokenizer
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    
+    return pipe  # Return the pipeline for inference

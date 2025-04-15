@@ -1,15 +1,19 @@
+# Inference evaluation with GPT-API
+
 import os
 from constants import OPENAI_API_KEY
 
 # Set the OpenAI API key as an environment variable
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
-eval_filepath = "text2sql_evaluation.jsonl"  # Replace with the actual evaluation file name
+# Define the evaluation file path
+ft_eval_filepath = "text2sql_evaluation_finetuned.jsonl"  # Replace with the actual evaluation file name
 
+# Construct the command as a multi-line string
 command = f"""
 python api_request_parallel_processor.py \
---requests_filepath requests/{eval_filepath}  \
---save_filepath results/{eval_filepath} \
+--requests_filepath requests/{ft_eval_filepath}  \
+--save_filepath results/{ft_eval_filepath} \
 --request_url https://api.openai.com/v1/chat/completions \
 --max_requests_per_minute 2500 \
 --max_tokens_per_minute 100000 \
@@ -18,14 +22,5 @@ python api_request_parallel_processor.py \
 --logging_level 20
 """
 
+# Execute the command
 os.system(command)
-
-# import openai
-
-# openai.api_key = OPENAI_API_KEY
-
-# # Fetch available models using the new API method
-# models = openai.models.list()
-
-# # Print available model IDs
-# print([model.id for model in models.data])
