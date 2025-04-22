@@ -1,5 +1,6 @@
 basic_of_huggingface/results/*
 
+*.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
